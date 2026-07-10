@@ -1,0 +1,9 @@
+# One-click deploy config for Render (https://render.com) free tier.
+# New > Blueprint > point at this repo, and Render builds the Dockerfile.
+services:
+  - type: web
+    name: churn-prediction-service
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
