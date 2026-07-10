@@ -12,7 +12,8 @@
 Unlike a notebook or an API-wrapper project, this demonstrates the full lifecycle:
 **data → train → version artifact → serve → monitor.**
 
-**Live API docs (try it):** https://churn-prediction-service.onrender.com/docs  
+**Try it (customer form):** https://churn-prediction-service.onrender.com/app
+**Developer API docs:** https://churn-prediction-service.onrender.com/docs
 **Live monitoring dashboard:** https://churn-prediction-service.onrender.com/dashboard
 
 > Hosted on Render's free tier, which sleeps after ~15 min idle — the first request
@@ -26,8 +27,9 @@ Predicts whether a telecom customer will churn, from account attributes.
 
 | Endpoint | Purpose |
 |---|---|
+| `GET /app` | **Human-friendly form** — fill fields, get a prediction (calls `/predict` under the hood) |
 | `POST /predict` | Churn probability + risk band for a customer (validated by Pydantic) |
-| `GET /docs` | Interactive Swagger UI — **try the model in the browser** |
+| `GET /docs` | Interactive Swagger UI — developer-facing API explorer |
 | `GET /dashboard` | Live monitoring: prediction count, churn rate, p95 latency (auto-refresh) |
 | `GET /metrics` | Prometheus-format metrics for scraping |
 | `GET /health` | Liveness + model-loaded check |

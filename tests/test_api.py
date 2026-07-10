@@ -46,6 +46,13 @@ def test_predict_rejects_bad_input(client):
     assert r.status_code == 422  # pydantic validation error
 
 
+def test_app_form_served(client):
+    r = client.get("/app")
+    assert r.status_code == 200
+    assert "Customer Churn Predictor" in r.text
+    assert "<form" in r.text
+
+
 def test_metrics_endpoint(client):
     client.post(
         "/predict",

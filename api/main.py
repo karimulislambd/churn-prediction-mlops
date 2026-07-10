@@ -45,10 +45,17 @@ def _risk(p: float) -> str:
 def root() -> dict:
     return {
         "service": "churn-prediction",
+        "try_it": "/app",
         "docs": "/docs",
         "dashboard": "/dashboard",
         "model": model_metrics(),
     }
+
+
+@app.get("/app", response_class=HTMLResponse)
+def app_form() -> str:
+    """Human-friendly form that calls POST /predict under the hood."""
+    return FORM_HTML
 
 
 @app.get("/health")
@@ -142,9 +149,101 @@ def dashboard() -> str:
         <div class="card"><div class="k">Test rows</div><div class="v">{m.get('n_test','?')}</div></div>
       </div>
       <div class="foot">
+        <a href="/app">Prediction form</a>
         <a href="/docs">API docs</a>
         <a href="/metrics">Prometheus metrics</a>
         <a href="/health">Health</a>
       </div>
     </div></body></html>
     """
+
+
+# Plain (non-f) string: all logic is client-side JS calling POST /predict.
+FORM_HTML = """
+<!doctype html><html><head><meta charset="utf-8">
+<title>Churn Predictor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;
+       margin:0;padding:2.5rem 1.25rem;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:640px}
+  h1{font-size:1.5rem;margin:0 0 .25rem}
+  .sub{color:#94a3b8;margin-bottom:1.5rem}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:1rem;background:#1e293b;
+       border:1px solid #334155;border-radius:16px;padding:1.5rem}
+  label{display:flex;flex-direction:column;font-size:.8rem;color:#94a3b8;gap:.35rem}
+  input,select{background:#0f172a;border:1px solid #334155;color:#e2e8f0;border-radius:8px;
+               padding:.6rem;font-size:.95rem}
+  button{grid-column:1/3;background:#2563eb;color:#fff;border:0;border-radius:10px;
+         padding:.85rem;font-size:1rem;font-weight:600;cursor:pointer;margin-top:.25rem}
+  button:hover{background:#1d4ed8}
+  #result{margin-top:1.5rem}
+  .rcard{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:1.5rem;text-align:center}
+  .badge{display:inline-block;padding:.35rem 1rem;border-radius:999px;font-weight:700;color:#fff}
+  .prob{font-size:2.6rem;font-weight:800;margin:.5rem 0}
+  .bar{height:10px;background:#0f172a;border-radius:999px;overflow:hidden;margin:.75rem 0}
+  .fill{height:100%;border-radius:999px;transition:width .4s}
+  .foot{margin-top:1.5rem;color:#64748b;font-size:.85rem;text-align:center}
+  .foot a{color:#60a5fa;margin:0 .5rem}
+  @media(max-width:520px){form{grid-template-columns:1fr}button{grid-column:1}}
+</style></head><body><div class="wrap">
+  <h1>Customer Churn Predictor</h1>
+  <div class="sub">Fill in the customer details and get an instant churn risk prediction.</div>
+  <form id="f" onsubmit="predict(event)">
+    <label>Tenure (months)<input name="tenure_months" type="number" value="6" min="0" max="120" required></label>
+    <label>Monthly charges ($)<input name="monthly_charges" type="number" value="89.5" step="0.01" min="0" required></label>
+    <label>Total charges ($)<input name="total_charges" type="number" value="450" step="0.01" min="0" required></label>
+    <label>Number of services<input name="num_services" type="number" value="3" min="0" max="20" required></label>
+    <label>Senior citizen
+      <select name="senior_citizen"><option value="0">No</option><option value="1">Yes</option></select></label>
+    <label>Contract type
+      <select name="contract_type">
+        <option>month-to-month</option><option>one-year</option><option>two-year</option></select></label>
+    <label>Internet service
+      <select name="internet_service"><option>dsl</option><option>fiber</option><option>none</option></select></label>
+    <label>Tech support
+      <select name="tech_support"><option>no</option><option>yes</option></select></label>
+    <label>Payment method
+      <select name="payment_method">
+        <option>electronic-check</option><option>mailed-check</option>
+        <option>bank-transfer</option><option>credit-card</option></select></label>
+    <button type="submit">Predict churn</button>
+  </form>
+  <div id="result"></div>
+  <div class="foot"><a href="/docs">Developer API</a> · <a href="/dashboard">Live dashboard</a></div>
+</div>
+<script>
+async function predict(e){
+  e.preventDefault();
+  const f = e.target;
+  const body = {
+    tenure_months:+f.tenure_months.value, monthly_charges:+f.monthly_charges.value,
+    total_charges:+f.total_charges.value, num_services:+f.num_services.value,
+    senior_citizen:+f.senior_citizen.value, contract_type:f.contract_type.value,
+    internet_service:f.internet_service.value, tech_support:f.tech_support.value,
+    payment_method:f.payment_method.value
+  };
+  const out = document.getElementById('result');
+  out.innerHTML = '<div class="rcard">Predicting…</div>';
+  try{
+    const r = await fetch('/predict', {method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    if(!r.ok){ out.innerHTML = '<div class="rcard">Error '+r.status+'</div>'; return; }
+    const d = await r.json();
+    const pct = (d.churn_probability*100).toFixed(1);
+    const c = {low:'#22c55e', medium:'#f59e0b', high:'#ef4444'}[d.risk] || '#64748b';
+    out.innerHTML =
+      '<div class="rcard">'
+      + '<span class="badge" style="background:'+c+'">'+d.risk.toUpperCase()+' RISK</span>'
+      + '<div class="prob" style="color:'+c+'">'+pct+'%</div>'
+      + '<div style="color:#94a3b8">probability this customer churns</div>'
+      + '<div class="bar"><div class="fill" style="width:'+pct+'%;background:'+c+'"></div></div>'
+      + '<div style="color:#94a3b8">Verdict: <b style="color:#e2e8f0">'
+      + (d.churn?'Likely to churn':'Likely to stay')+'</b> · model v'+d.model_version+'</div>'
+      + '</div>';
+  }catch(err){ out.innerHTML = '<div class="rcard">Error: '+err+'</div>'; }
+}
+</script>
+</body></html>
+"""
