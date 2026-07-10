@@ -1,7 +1,7 @@
 # Churn Prediction Service — end-to-end MLOps
 
 [![CI](https://github.com/karimulislambd/churn-prediction-mlops/actions/workflows/ci.yml/badge.svg)](https://github.com/karimulislambd/churn-prediction-mlops/actions/workflows/ci.yml)
-[![Live API](https://img.shields.io/badge/Live_API-docs-009688?logo=fastapi&logoColor=white)](#)
+[![Live API](https://img.shields.io/badge/Live_API-docs-009688?logo=fastapi&logoColor=white)](https://churn-prediction-service.onrender.com/docs)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Lint: ruff](https://img.shields.io/badge/lint-ruff-000000?logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
 
@@ -12,8 +12,11 @@
 Unlike a notebook or an API-wrapper project, this demonstrates the full lifecycle:
 **data → train → version artifact → serve → monitor.**
 
-**Live API docs:** _add your Render URL + `/docs` here_
-**Live dashboard:** _add your Render URL + `/dashboard` here_
+**Live API docs (try it):** https://churn-prediction-service.onrender.com/docs
+**Live monitoring dashboard:** https://churn-prediction-service.onrender.com/dashboard
+
+> Hosted on Render's free tier, which sleeps after ~15 min idle — the first request
+> may take ~30s to wake the service, and in-memory metrics reset on restart.
 
 ---
 
