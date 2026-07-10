@@ -12,8 +12,8 @@
 Unlike a notebook or an API-wrapper project, this demonstrates the full lifecycle:
 **data → train → version artifact → serve → monitor.**
 
-**Try it (customer form):** https://churn-prediction-service.onrender.com/app
-**Developer API docs:** https://churn-prediction-service.onrender.com/docs
+**Try it (customer form):** https://churn-prediction-service.onrender.com/app  
+**Developer API docs:** https://churn-prediction-service.onrender.com/docs  
 **Live monitoring dashboard:** https://churn-prediction-service.onrender.com/dashboard
 
 > Hosted on Render's free tier, which sleeps after ~15 min idle — the first request
