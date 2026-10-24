@@ -64,6 +64,17 @@ GradientBoosting on ~5k synthetic-but-realistic customers. Held-out **ROC-AUC â‰
 The dataset is synthetic (privacy-safe, self-contained); the *engineering* is the point,
 and the exact pipeline generalizes to any tabular problem.
 
+## Design decisions and limits
+
+- **One artifact for the whole pipeline.** Preprocessing and model are saved together, so
+  the API cannot apply different transforms than training did.
+- **Synthetic data on purpose.** Nothing private is shipped, and anyone can reproduce the
+  numbers with `python -m data.generate_data`. A real deployment would need real data and
+  a fresh evaluation; the 0.81 ROC-AUC says nothing about real telecom churn.
+- **In-memory metrics.** Simple and dependency-free, but they reset on restart. A real
+  deployment would scrape `/metrics` with Prometheus and keep the history there.
+- **Free-tier hosting.** Good enough for a demo; not sized for traffic.
+
 ## Quickstart
 
 ```bash
